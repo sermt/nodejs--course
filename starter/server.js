@@ -2,6 +2,11 @@ const app = require('./app');
 const dotenv = require('dotenv');
 
 dotenv.config({ path: './config.env' });
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception, shutting down:', err);
+  process.exit(1);
+});
 function startServer(port) {
 
   try {
@@ -21,6 +26,13 @@ function startServer(port) {
       server.close(() => {
         console.log('Process interrupted, server closed');
         process.exit(0);
+      });
+    });
+
+    process.on('uncaughtException', (err) => {
+      console.error('Uncaught exception, shutting down:', err);
+      server.close(() => {
+        process.exit(1);
       });
     });
 

@@ -81,7 +81,7 @@ const tourSchema = new mongoose.Schema(
 
 // middleware to calculate average rating before saving
 tourSchema.pre('save', async function (next) {
-  this.slugify(this.name, { lower: true });
+  slugify(this.name, { lower: true });
   next();
 });
 tourSchema.virtual('durationWeeks').get(function () {

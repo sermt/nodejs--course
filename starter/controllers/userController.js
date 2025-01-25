@@ -15,43 +15,16 @@ const getAllUsers = catchAsync(async (req, res, next) => {
 });
 
 const createUser = catchAsync(async (req, res, next) => {
-  userModel.find().exec((err, users) => {
-    if (err) {
-      return next(new AppError(err.message, 500).send(res));
-    }
-    res.status(200).json({
-      status: 'success',
-      results: users.length,
-      data: users,
-    });
+  const { name, email, password, confirmPassword } = req.body;
+  if (!name ||!email ||!password) {
+    return next(new AppError('Please provide name, email, and password', 400));
+  }
+
+  const newUser = await userModel.create({ name, email, password  });
+  res.status(201).json({
+    status: 'success',
+    data: newUser,
   });
 });
 
-const updateUser = catchAsync(async (req, res, next) => {
-  userModel.find().exec((err, users) => {
-    if (err) {
-      return next(new AppError(err.message, 500).send(res));
-    }
-    res.status(200).json({
-      status: 'success',
-      results: users.length,
-      data: users,
-    });
-  });
-});
-
-const deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
-
-const getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
-
-module.exports = { getAllUsers, createUser, updateUser, deleteUser, getUser };
+module.exports = { getAllUsers, createUser, getUser };

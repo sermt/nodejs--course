@@ -90,6 +90,10 @@ const protect = catchAsync(async function protect(req, _, next) {
     return next(new AppError('User no longer exists.', 401));
   }
 
+  if(req.params.id !== decoded.id) {
+    return next(new AppError('Unauthorized to access this route', 403));
+  }
+  
   // check if user has changed password after token was issued
   if (user.changePasswordAfter(decoded.iat)) {
     return next(
@@ -122,6 +126,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
 
   // generate random token
   const resetToken = user.createPasswordResetToken();
+  console.log('Reset token:', resetToken);
   await user.save({ validateBeforeSave: false });
 
   // send email with reset token
@@ -174,8 +179,8 @@ const resetPassword = catchAsync(async (req, res, next) => {
   // Set new password
   user.password = password;
   user.passwordConfirm = passwordConfirm;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordTokenExpiresAt = undefined;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpiresAt = undefined;
 
   await user.save();
 

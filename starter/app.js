@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const reviewRouter = require('./routes/reviewsRoutes');
 const AppError = require('./utils/appError');
 const errorController = require('./controllers/errorController');
 const rateLimit = require('express-rate-limit');
@@ -57,14 +58,15 @@ app.use(mongoSanitizer());
 app.use(xss());
 
 // prevent parameter pollution
-app.use(hpp(
-  {
+app.use(
+  hpp({
     whitelist: [],
-  }
-)); 
+  })
+);
 
 // mounting routes
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

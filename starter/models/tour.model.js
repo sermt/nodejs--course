@@ -20,7 +20,6 @@ const tourSchema = new mongoose.Schema(
     rating: {
       type: Number,
       default: 4.5,
-
     },
     ratingsAverage: {
       type: Number,
@@ -44,14 +43,15 @@ const tourSchema = new mongoose.Schema(
     },
     priceDiscount: {
       type: Number,
-     validate: {
-      // this only works on CREATE!!!
-      validator: function (value) {
-        return value < this.price;
+      validate: {
+        // this only works on CREATE!!!
+        validator: function (value) {
+          return value < this.price;
+        },
+        message:
+          'Price discount ({VALUE}) should be lower than the regular price',
       },
-      message: 'Price discount ({VALUE}) should be lower than the regular price',
-     },
-    } ,
+    },
     summery: {
       type: String,
       trim: true,
@@ -75,13 +75,48 @@ const tourSchema = new mongoose.Schema(
     },
     slug: String,
     startDates: [Date],
+    startLocation: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+      },
+      coordinates: {
+        type: [Number],
+      },
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          enum: ['Point'],
+          default: 'Point',
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
   },
+
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 // middleware to calculate average rating before saving
 tourSchema.pre('save', async function (next) {
   slugify(this.name, { lower: true });
+  next();
+});
+
+// add guides on create a tour
+tourSchema.pre('save', async function (next) {
+  console.log(this.guides, 'guides' in this);
+  if (!this.guides.length) return next();
+  
   next();
 });
 tourSchema.virtual('durationWeeks').get(function () {
@@ -102,11 +137,32 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate('guides', '-__v -passwordChangedAt'); // exclude password and passwordChangedAt fields from guides
+  next();
+});
+
 // agregation middleware
 tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   next();
 });
+
+// virtual populate for reviews
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  localField: '_id',
+  foreignField: 'tour',
+  justOne: false,
+});
+
+// indexing
+
+
+//tourSchema.index({ price: 1, ratingsQuantity: -1, name: 1 });
+//tourSchema.index({ price: 1});
+
 const Tour = mongoose.model('Tour', tourSchema);
 
 module.exports = Tour;

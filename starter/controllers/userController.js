@@ -27,4 +27,19 @@ const createUser = catchAsync(async (req, res, next) => {
   });
 });
 
-module.exports = { getAllUsers, createUser, getUser };
+const getUserById = catchAsync(async (req, res, next) => {
+  const decodedId = req.user._id;
+  if (decodedId !== req.params.id) {
+    return next(new AppError('Unauthorized', 401));
+  }
+  const user = await userModel.findById(req.params.id);
+  if (!user) {
+    return next(new AppError('No user found with that ID', 404));
+  }
+  res.status(200).json({
+    status:'success',
+    data: user,
+  });
+});
+
+module.exports = { getAllUsers, createUser, getUserById }; 

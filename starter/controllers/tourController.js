@@ -30,6 +30,8 @@ const createTour = catchAsync(async (req, res, next) => {
     ratingAverage,
     ratingQuantity,
     difficultyLevel,
+    imageCover,
+    guides,
   } = req.body;
   const newTour = await Tour.create({
     name,
@@ -39,9 +41,11 @@ const createTour = catchAsync(async (req, res, next) => {
     difficulty,
     description,
     images,
+    guides,
     ratingAverage,
     ratingQuantity,
     difficultyLevel,
+    imageCover,
   });
 
   res.status(201).json({
@@ -72,7 +76,7 @@ const getAllTours = async (req, res) => {
     .excludeFields()
     .paginate();
   const query = apiFeatures.query;
-
+  // we could use explain to understand the query plan for performance optimization
   const tours = await query;
 
   res.status(200).json({
@@ -85,7 +89,7 @@ const getAllTours = async (req, res) => {
 };
 
 const getTour = catchAsync(async (req, res) => {
-  const tour = await Tour.findById(req.params.id);
+  const tour = await Tour.findById(req.params.id).populate('reviews');
   if (!tour) {
     throw new Error(new AppError('Tour not found', 404));
   }
